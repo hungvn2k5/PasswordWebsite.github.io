@@ -1,4 +1,3 @@
-// Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCfo6J0kruHlTZ2VvwnXnA8znjbXz7Nqvg",
     authDomain: "passwordmanager-5797f.firebaseapp.com",
@@ -9,22 +8,23 @@ const firebaseConfig = {
     measurementId: "G-BFEF32V0EZ"
 };
 
-// Initialize Firebase
+// 🔹 Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 let currentUser = null;
 
-// Function to handle user selection
+// 🧑 Select User
 function selectUser() {
     let username = prompt("Enter your username:");
     if (username) {
         currentUser = username;
+        document.getElementById("currentUserDisplay").innerText = `User: ${currentUser}`;
         loadPasswords();
     }
 }
 
-// Function to save passwords to Firestore
+// 💾 Save Password
 function savePassword() {
     let appName = document.getElementById("appName").value;
     let username = document.getElementById("username").value;
@@ -44,14 +44,14 @@ function savePassword() {
         category: category,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
     }).then(() => {
-        console.log("Password saved!");
+        console.log("✅ Password saved successfully!");
         loadPasswords();
     }).catch(error => {
-        console.error("Error saving password:", error);
+        console.error("❌ Error saving password:", error);
     });
 }
 
-// Function to load passwords from Firestore
+// 🔍 Load Passwords
 function loadPasswords() {
     if (!currentUser) return;
 
@@ -75,19 +75,19 @@ function loadPasswords() {
                 passwordList.appendChild(li);
             });
         }).catch(error => {
-            console.error("Error loading passwords:", error);
+            console.error("❌ Error loading passwords:", error);
         });
 }
 
-// Function to delete passwords from Firestore
+// ❌ Delete Password
 function deletePassword(id) {
     db.collection("passwords").doc(id).delete()
         .then(() => {
-            console.log("Password deleted!");
+            console.log("✅ Password deleted!");
             loadPasswords();
         })
-        .catch(error => console.error("Error deleting password:", error));
+        .catch(error => console.error("❌ Error deleting password:", error));
 }
 
-// Select user on page load
+// Auto-select user on load
 window.onload = selectUser;
