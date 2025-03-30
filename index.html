@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Manager</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: auto; padding: 20px; }
+        input, select, button { display: block; margin: 10px 0; width: 100%; padding: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Password Manager</h2>
+        <label for="userSelect">Select User:</label>
+        <select id="userSelect"></select>
+        <button onclick="addUser()">Add New User</button>
+        
+        <div id="passwordForm" class="hidden">
+            <h3>Add/Edit Password</h3>
+            <input type="text" id="appName" placeholder="App/Website Name">
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <input type="text" id="category" placeholder="Category (e.g., Work, Personal)">
+            <button onclick="savePassword()">Save</button>
+        </div>
+        
+        <h3>Saved Passwords</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>App/Website</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>Category</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="passwordList"></tbody>
+        </table>
+    </div>
+    
+    <script>
+        let users = [];
+        let passwords = {};
+        let currentUser = "";
+        
+        function loadUsers() {
+            users = JSON.parse(localStorage.getItem("users")) || [];
+            passwords = JSON.parse(localStorage.getItem("passwords")) || {};
+            let userSelect = document.getElementById("userSelect");
+            userSelect.innerHTML = "";
+            users.forEach(user => {
+                let option = document.createElement("option");
+                option.value = user;
+                option.textContent = user;
+                userSelect.appendChild(option);
+            });
+            if (users.length > 0) {
+                currentUser = users[0];
+                loadPasswords();
+            }
+        }
+        
+        function addUser() {
+            let userName = prompt("Enter new username:");
+            if (userName && !users.includes(userName)) {
+                users.push(userName);
+                passwords[userName] = [];
+                localStorage.setItem("users", JSON.stringify(users));
+                localStorage.setItem("passwords", JSON.stringify(passwords));
+                loadUsers();
+            }
+        }
+        
+        function loadPasswords() {
+            currentUser = document.getElementById("userSelect").value;
+            let passwordList = document.getElementById("passwordList");
+            passwordList.innerHTML = "";
+            (passwords[currentUser] || []).forEach((entry, index) => {
+                let row = `<tr>
+                    <td>${entry.appName}</td>
+                    <td>${entry.username}</td>
+                    <td>${entry.password}</td>
+                    <td>${entry.category}</td>
+                    <td>
+                        <button onclick="editPassword(${index})">Edit</button>
+                        <button onclick="deletePassword(${index})">Delete</button>
+                    </td>
+                </tr>`;
+                passwordList.innerHTML += row;
+            });
+            document.getElementById("passwordForm").classList.remove("hidden");
+        }
+        
+        function savePassword() {
+            let appName = document.getElementById("appName").value;
+            let username = document.getElementById("username").value;
+            let password = document.getElementById("password").value;
+            let category = document.getElementById("category").value;
+            
+            if (!passwords[currentUser]) passwords[currentUser] = [];
+            passwords[currentUser].push({ appName, username, password, category });
+            localStorage.setItem("passwords", JSON.stringify(passwords));
+            loadPasswords();
+        }
+        
+        function deletePassword(index) {
+            passwords[currentUser].splice(index, 1);
+            localStorage.setItem("passwords", JSON.stringify(passwords));
+            loadPasswords();
+        }
+        
+        function editPassword(index) {
+            let entry = passwords[currentUser][index];
+            document.getElementById("appName").value = entry.appName;
+            document.getElementById("username").value = entry.username;
+            document.getElementById("password").value = entry.password;
+            document.getElementById("category").value = entry.category;
+            passwords[currentUser].splice(index, 1);
+            localStorage.setItem("passwords", JSON.stringify(passwords));
+        }
+        
+        document.getElementById("userSelect").addEventListener("change", loadPasswords);
+        loadUsers();
+    </script>
+</body>
+</html>
